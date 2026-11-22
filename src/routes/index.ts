@@ -1,0 +1,39 @@
+import { Router } from 'express';
+import authRoutes from './auth.routes';
+import farmerRoutes from './farmer.routes';
+import fidRoutes from './fid.routes';
+import walletRoutes from './wallet.routes';
+import dashboardRoutes from './dashboard.routes';
+import cropRoutes from './crop.routes';
+import vehicleRoutes from './vehicle.routes';
+import trailerRoutes from './trailer.routes';
+import loanRoutes from './loan.routes';
+import paymentRoutes from './payment.routes';
+import paymentSettingsRoutes from './paymentSettings.routes';
+import userRoutes from './user.routes';
+import auditRoutes from './audit.routes';
+import applicationRoutes from './application.routes';
+import documentRoutes from './document.routes';
+import reportsRoutes from './reports.routes';
+
+const router = Router();
+
+router.get('/health', (_req, res) => res.json({ success: true, data: { status: 'ok', time: new Date().toISOString() } }));
+router.use('/auth', authRoutes);
+router.use('/farmers', farmerRoutes);
+router.use('/fid', fidRoutes);
+router.use('/wallet', walletRoutes);
+router.use('/dashboard', dashboardRoutes);
+router.use('/crop-applications', cropRoutes);
+router.use('/vehicle-applications', vehicleRoutes);
+router.use('/trailer-applications', trailerRoutes);
+router.use('/loan-leads', loanRoutes);
+router.use('/manual-payments', paymentRoutes);
+router.use('/payment-settings', paymentSettingsRoutes);
+router.use('/users', userRoutes);
+router.use('/audit-logs', auditRoutes);
+router.use('/applications', applicationRoutes);
+router.use('/documents', documentRoutes);
+router.use('/reports', reportsRoutes);
+
+export default router;
