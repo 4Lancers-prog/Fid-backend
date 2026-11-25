@@ -7,6 +7,7 @@ interface ListParams {
   status?: string;
   page: number;
   limit: number;
+  restrictToUserId?: string; // when set, only this creator's records are returned
 }
 
 interface CrudConfig<TDoc> {
@@ -45,6 +46,9 @@ export function makeCrudService<TDoc>(config: CrudConfig<TDoc>) {
         throw AppError.badRequest('Unknown status filter.', 'INVALID_STATUS');
       }
       (filter as Record<string, unknown>).status = params.status;
+    }
+    if (params.restrictToUserId) {
+      (filter as Record<string, unknown>).createdBy = params.restrictToUserId;
     }
     if (params.search && searchFields.length) {
       const rx = new RegExp(escapeRegex(params.search), 'i');

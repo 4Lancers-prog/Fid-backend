@@ -21,7 +21,7 @@ interface Registry {
 const REGISTRY: Record<string, Registry> = {
   crop: { type: 'crop', label: 'Crop Insurance', model: CropApplication, nameField: 'farmerName', mobileField: 'mobile', service: cropService },
   vehicle: { type: 'vehicle', label: 'Vehicle Insurance', model: VehicleApplication, nameField: 'ownerName', mobileField: 'mobile', service: vehicleService },
-  trailer: { type: 'trailer', label: 'Trailer Certificate', model: TrailerApplication, nameField: 'applicantName', mobileField: 'mobile', service: trailerService },
+  trailer: { type: 'trailer', label: 'Usha Tailoring Certificate', model: TrailerApplication, nameField: 'applicantName', mobileField: 'mobile', service: trailerService },
   loan: { type: 'loan', label: 'Loan Lead', model: LoanLead, nameField: 'applicantName', mobileField: 'mobile', service: loanService },
 };
 

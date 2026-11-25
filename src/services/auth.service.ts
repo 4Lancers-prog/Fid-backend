@@ -78,7 +78,7 @@ export async function requestRegistration(input: {
       email: input.email,
       mobile: input.mobile,
       passwordHash,
-      role: 'operator',
+      role: 'customer',
       isActive: false,
       approvalStatus: 'pending',
       registrationPaymentUtr: input.paymentUtr,

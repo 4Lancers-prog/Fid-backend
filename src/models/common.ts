@@ -7,6 +7,7 @@ export const commonApplicationFields = {
   remarks: { type: String, trim: true },
   assignedTo: { type: Schema.Types.ObjectId, ref: 'User' },
   farmer: { type: Schema.Types.ObjectId, ref: 'Farmer' },
+  documents: [{ type: Schema.Types.ObjectId, ref: 'DocumentFile' }],
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
 };
@@ -17,6 +18,7 @@ export interface CommonApplicationDoc {
   remarks?: string;
   assignedTo?: Types.ObjectId;
   farmer?: Types.ObjectId;
+  documents?: Types.ObjectId[];
   createdBy: Types.ObjectId;
   updatedBy?: Types.ObjectId;
   createdAt: Date;

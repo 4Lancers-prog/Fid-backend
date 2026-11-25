@@ -11,7 +11,7 @@ router.use(authenticate);
 const readRoles = ['admin', 'operator', 'viewer', 'loan_executive'] as const;
 
 // Assisted FRUITS/K-Kisan workflow: check if a verified Aadhaar already has a profile.
-router.post('/lookup', authorize('admin', 'operator'), validate(lookupAadhaarSchema), farmerController.lookup);
+router.post('/lookup', authorize('admin'), validate(lookupAadhaarSchema), farmerController.lookup);
 
 router.post('/', authorize('admin', 'operator'), validate(createFarmerSchema), farmerController.create);
 router.get('/', authorize(...readRoles), validate(listFarmersSchema, 'query'), farmerController.list);

@@ -53,6 +53,13 @@ export const env = {
     'DATA_ENCRYPTION_KEY',
     isProd ? undefined : '0'.repeat(64),
   ),
+  // Optional AUTHORIZED government FRUITS/K-Kisan API (issued by the dept). When set,
+  // the Aadhaar lookup auto-fetches new farmers from it. Leave blank to use only the
+  // local database (scraping the OTP/CAPTCHA portal is never done).
+  fruits: {
+    url: process.env.FRUITS_API_URL ?? '',
+    key: process.env.FRUITS_API_KEY ?? '',
+  },
   seed: {
     name: process.env.SEED_ADMIN_NAME ?? 'Super Admin',
     email: process.env.SEED_ADMIN_EMAIL ?? 'admin@farmerportal.local',

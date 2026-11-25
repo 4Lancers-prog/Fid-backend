@@ -28,4 +28,7 @@ const schema = new Schema<IFarmerHistory>(
   { timestamps: { createdAt: true, updatedAt: false } },
 );
 
+// History is retained for 24 hours only (auto-deleted by MongoDB TTL).
+schema.index({ createdAt: 1 }, { expireAfterSeconds: 24 * 60 * 60 });
+
 export const FarmerHistory = model<IFarmerHistory>('FarmerHistory', schema);

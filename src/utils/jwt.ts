@@ -32,3 +32,20 @@ export function verifyAccessToken(token: string): AccessTokenPayload {
 export function verifyRefreshToken(token: string): RefreshTokenPayload {
   return jwt.verify(token, env.jwt.refreshSecret) as RefreshTokenPayload;
 }
+
+export interface UploadTokenPayload {
+  sub: string; // userId whose documents these uploads belong to
+  typ: 'upload';
+}
+
+export function signUploadToken(userId: string): string {
+  return jwt.sign({ sub: userId, typ: 'upload' } as UploadTokenPayload, env.jwt.accessSecret, {
+    expiresIn: '30m',
+  });
+}
+
+export function verifyUploadToken(token: string): UploadTokenPayload {
+  const payload = jwt.verify(token, env.jwt.accessSecret) as UploadTokenPayload;
+  if (payload.typ !== 'upload') throw new Error('Not an upload token');
+  return payload;
+}

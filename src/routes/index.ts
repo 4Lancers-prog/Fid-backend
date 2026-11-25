@@ -13,6 +13,9 @@ import paymentSettingsRoutes from './paymentSettings.routes';
 import userRoutes from './user.routes';
 import auditRoutes from './audit.routes';
 import applicationRoutes from './application.routes';
+import settingsRoutes from './settings.routes';
+import uploadSessionRoutes from './uploadSession.routes';
+import notificationRoutes from './notification.routes';
 import documentRoutes from './document.routes';
 import reportsRoutes from './reports.routes';
 
@@ -33,6 +36,9 @@ router.use('/payment-settings', paymentSettingsRoutes);
 router.use('/users', userRoutes);
 router.use('/audit-logs', auditRoutes);
 router.use('/applications', applicationRoutes);
+router.use('/service-settings', settingsRoutes);
+router.use('/upload-session', uploadSessionRoutes);
+router.use('/notifications', notificationRoutes);
 router.use('/documents', documentRoutes);
 router.use('/reports', reportsRoutes);
 

@@ -12,5 +12,6 @@ export const createVehicleSchema = z.object({
   vehicleMakeModel: z.string().trim().optional(),
   manufacturingYear: z.coerce.number().int().min(1950).max(2100).optional(),
   farmer: z.string().trim().optional(),
+  documents: z.array(z.string()).optional(),
 });
 export const updateVehicleSchema = createVehicleSchema.partial();

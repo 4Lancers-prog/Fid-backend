@@ -43,6 +43,7 @@ export const loanService = makeCrudService<ILoanLead>({
       loanType: input.loanType,
       loanAmount: input.loanAmount,
       farmer: input.farmer,
+      documents: input.documents,
     };
     const pan = input.pan as string | undefined;
     const aadhaar = input.aadhaar as string | undefined;

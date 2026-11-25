@@ -9,8 +9,10 @@ const REFRESH_COOKIE = 'refreshToken';
 function setRefreshCookie(res: Response, token: string): void {
   res.cookie(REFRESH_COOKIE, token, {
     httpOnly: true,
+    // Cross-site in production (frontend and backend on different domains) requires
+    // SameSite=None + Secure so the browser sends the refresh cookie back.
     secure: env.isProd,
-    sameSite: env.isProd ? 'strict' : 'lax',
+    sameSite: env.isProd ? 'none' : 'lax',
     path: '/api/auth',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
@@ -50,7 +52,7 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
 
 export const logout = asyncHandler(async (req: Request, res: Response) => {
   if (req.user) await authService.revokeTokens(req.user.id);
-  res.clearCookie(REFRESH_COOKIE, { path: '/api/auth' });
+  res.clearCookie(REFRESH_COOKIE, { path: '/api/auth', secure: env.isProd, sameSite: env.isProd ? 'none' : 'lax' });
   res.json({ success: true, data: { message: 'Signed out successfully.' } });
 });
 

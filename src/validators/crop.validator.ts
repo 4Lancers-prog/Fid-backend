@@ -14,5 +14,6 @@ export const createCropSchema = z.object({
   season: z.enum(SEASONS, { message: 'Please select a season.' }),
   additionalDetails: z.string().trim().optional(),
   farmer: z.string().trim().optional(),
+  documents: z.array(z.string()).optional(),
 });
 export const updateCropSchema = createCropSchema.partial();

@@ -4,6 +4,7 @@ import { ApprovalStatus } from '../models/User';
 import { AppError } from '../utils/AppError';
 import { getOrCreateWallet } from './wallet.service';
 import { audit } from '../utils/audit';
+import { notify } from './notification.service';
 
 interface Actor {
   id: string;
@@ -111,6 +112,7 @@ export async function approveUser(actor: Actor, id: string, role?: UserRole) {
   if (role) user.role = role;
   await user.save();
   await audit({ actorId: actor.id, actorName: actor.name, action: 'user.approve', targetType: 'User', targetId: user.id, meta: { role: user.role } });
+  await notify({ userId: user.id, type: 'registration_approved', title: 'Account approved', message: 'Your account has been approved. You can now sign in and use the services.' });
   return user.toJSON();
 }
 
@@ -122,6 +124,7 @@ export async function rejectUser(actor: Actor, id: string) {
   user.isActive = false;
   await user.save();
   await audit({ actorId: actor.id, actorName: actor.name, action: 'user.reject', targetType: 'User', targetId: user.id });
+  await notify({ userId: user.id, type: 'registration_rejected', title: 'Registration not approved', message: 'Your registration was not approved. Please contact the administrator.' });
   return user.toJSON();
 }
 

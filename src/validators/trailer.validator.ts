@@ -12,5 +12,6 @@ export const createTrailerSchema = z.object({
   address: z.string().trim().optional(),
   additionalDetails: z.string().trim().optional(),
   farmer: z.string().trim().optional(),
+  documents: z.array(z.string()).optional(),
 });
 export const updateTrailerSchema = createTrailerSchema.partial();

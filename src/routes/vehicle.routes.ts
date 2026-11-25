@@ -7,12 +7,12 @@ import { authorize } from '../middleware/authorize';
 import { listQuerySchema } from '../validators/common.validator';
 import { createVehicleSchema, updateVehicleSchema } from '../validators/vehicle.validator';
 
-const c = makeCrudController(vehicleService);
+const c = makeCrudController(vehicleService, 'vehicle');
 const router = Router();
 router.use(authenticate);
 
-router.post('/', authorize('admin', 'operator'), validate(createVehicleSchema), c.create);
-router.get('/', authorize('admin', 'operator', 'viewer'), validate(listQuerySchema, 'query'), c.list);
+router.post('/', authorize('admin', 'operator', 'customer'), validate(createVehicleSchema), c.create);
+router.get('/', authorize('admin', 'operator', 'viewer', 'customer'), validate(listQuerySchema, 'query'), c.list);
 router.get('/:id', authorize('admin', 'operator', 'viewer'), c.getOne);
 router.patch('/:id', authorize('admin', 'operator'), validate(updateVehicleSchema), c.update);
 router.patch('/:id/status', authorize('admin', 'operator'), c.updateStatus);

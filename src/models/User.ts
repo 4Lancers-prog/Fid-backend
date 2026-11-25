@@ -1,7 +1,7 @@
 import { Schema, model, Document, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-export const USER_ROLES = ['super_admin', 'admin', 'operator', 'loan_executive', 'viewer'] as const;
+export const USER_ROLES = ['super_admin', 'admin', 'operator', 'loan_executive', 'viewer', 'customer'] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 
 export const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'] as const;

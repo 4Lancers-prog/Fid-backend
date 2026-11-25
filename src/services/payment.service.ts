@@ -5,6 +5,7 @@ import { AppError } from '../utils/AppError';
 import { validateImageDataUrl } from '../utils/file';
 import * as walletService from './wallet.service';
 import { audit } from '../utils/audit';
+import { notify } from './notification.service';
 
 // ---- Admin QR / payment settings (singleton) ----
 
@@ -151,6 +152,7 @@ export async function approvePayment(id: string, adminId: string, remarks?: stri
   payment.creditTransaction = txn._id;
   await payment.save();
   await audit({ actorId: adminId, action: 'payment.approve', targetType: 'ManualPayment', targetId: payment._id.toString(), meta: { amountPaise: payment.amount, utr: payment.utr } });
+  await notify({ userId: payment.user.toString(), type: 'payment_approved', title: 'Payment verified', message: `Your wallet has been credited ₹${(payment.amount / 100).toFixed(2)}.` });
   return serialize(payment);
 }
 
@@ -166,5 +168,6 @@ export async function rejectPayment(id: string, adminId: string, reason: string)
   payment.reviewedAt = new Date();
   await payment.save(); // no wallet credit
   await audit({ actorId: adminId, action: 'payment.reject', targetType: 'ManualPayment', targetId: payment._id.toString(), meta: { amountPaise: payment.amount, utr: payment.utr, reason } });
+  await notify({ userId: payment.user.toString(), type: 'payment_rejected', title: 'Payment rejected', message: `Your recharge was rejected: ${reason}` });
   return serialize(payment);
 }

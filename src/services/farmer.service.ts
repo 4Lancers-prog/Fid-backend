@@ -2,6 +2,7 @@ import { FilterQuery } from 'mongoose';
 import { Farmer, IFarmer } from '../models/Farmer';
 import { FarmerHistory } from '../models/FarmerHistory';
 import { AppError } from '../utils/AppError';
+import { env } from '../config/env';
 import { encrypt, blindIndex } from '../utils/crypto';
 import { maskAadhaar } from '../utils/mask';
 import { audit } from '../utils/audit';
@@ -127,7 +128,8 @@ export async function updateFarmer(id: string, input: UpdateFarmerInput, actor: 
 export async function getFarmerHistory(id: string) {
   const farmer = await Farmer.findById(id).select('_id');
   if (!farmer) throw AppError.notFound('Farmer profile not found.', 'FARMER_NOT_FOUND');
-  const history = await FarmerHistory.find({ farmer: id }).sort({ createdAt: -1 }).limit(100).populate('changedBy', 'name');
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000); // only the last 24 hours
+  const history = await FarmerHistory.find({ farmer: id, createdAt: { $gte: since } }).sort({ createdAt: -1 }).limit(100).populate('changedBy', 'name');
   return history.map((h) => ({
     id: h._id.toString(),
     action: h.action,
@@ -137,15 +139,63 @@ export async function getFarmerHistory(id: string) {
   }));
 }
 
+interface FetchedDetails {
+  name?: string;
+  gender?: string;
+  fid?: string;
+  mobile?: string;
+  address?: string;
+  village?: string;
+  taluk?: string;
+  district?: string;
+}
+
 /**
- * Compliant existence check used by the assisted FRUITS/K-Kisan workflow: given
- * a verified Aadhaar transcribed by the user, report whether a profile already
- * exists (so it can be reused) without exposing the full number anywhere.
+ * Fetches farmer details by Aadhaar. Looks in the local database first (instant,
+ * for already-registered farmers); if not found and an AUTHORIZED government API
+ * is configured, fetches from it. Never scrapes the OTP/CAPTCHA portal.
  */
 export async function lookupByAadhaar(aadhaar: string) {
   const hash = blindIndex(aadhaar);
-  const farmer = await Farmer.findOne({ aadhaarHash: hash });
-  return { exists: !!farmer, farmer: farmer ? serializeFarmer(farmer) : null };
+  const existing = await Farmer.findOne({ aadhaarHash: hash });
+  if (existing) {
+    return { exists: true, source: 'database' as const, farmer: serializeFarmer(existing), details: null };
+  }
+  const details = await fetchFromFruitsApi(aadhaar);
+  if (details) {
+    return { exists: false, source: 'fruits' as const, farmer: null, details };
+  }
+  return { exists: false, source: null, farmer: null, details: null };
+}
+
+/** Calls the authorized FRUITS/K-Kisan API if configured. Returns null otherwise or on error. */
+async function fetchFromFruitsApi(aadhaar: string): Promise<FetchedDetails | null> {
+  if (!env.fruits.url || !env.fruits.key) return null;
+  try {
+    const res = await fetch(env.fruits.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${env.fruits.key}` },
+      body: JSON.stringify({ aadhaar }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as Record<string, any>;
+    // Map the authorized API's response to our fields (adjust keys to the real API's shape).
+    const f = (data.farmer ?? data.data ?? data) as Record<string, any>;
+    if (!f || typeof f !== 'object') return null;
+    const gender = (f.gender ?? '').toString().toLowerCase();
+    return {
+      name: f.name ?? f.farmerName,
+      gender: ['male', 'female', 'other'].includes(gender) ? gender : undefined,
+      fid: f.fid ?? f.fidNumber ?? f.fidNo,
+      mobile: f.mobile ?? f.mobileNumber,
+      address: f.address,
+      village: f.village,
+      taluk: f.taluk,
+      district: f.district,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function deleteFarmer(id: string) {
