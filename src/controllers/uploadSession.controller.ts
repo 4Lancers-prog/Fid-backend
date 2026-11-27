@@ -13,3 +13,7 @@ export const info = asyncHandler(async (req: Request, res: Response) => {
 export const upload = asyncHandler(async (req: Request, res: Response) => {
   res.status(201).json({ success: true, data: await svc.uploadViaToken(req.params.token, req.body) });
 });
+
+export const clear = asyncHandler(async (req: Request, res: Response) => {
+  res.json({ success: true, data: await svc.clearSession(req.params.token) });
+});
