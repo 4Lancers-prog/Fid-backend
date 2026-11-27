@@ -1,37 +1,52 @@
+import { TempUpload } from '../models/TempUpload';
 import { User } from '../models/User';
 import { AppError } from '../utils/AppError';
 import { signUploadToken, verifyUploadToken } from '../utils/jwt';
-import * as documentService from './document.service';
 
-/** Creates a short-lived token the phone uses to upload documents for this user. */
+/** Creates a short-lived token; the QR encodes a link carrying it. */
 export function createSession(userId: string): { token: string; expiresInMinutes: number } {
-  return { token: signUploadToken(userId), expiresInMinutes: 30 };
+  return { token: signUploadToken(userId), expiresInMinutes: 120 };
 }
 
-async function resolveUser(token: string) {
-  let payload;
+function resolve(token: string): { sub: string; sid: string } {
   try {
-    payload = verifyUploadToken(token);
+    return verifyUploadToken(token);
   } catch {
     throw AppError.unauthorized('This upload link has expired. Please generate a new QR code.', 'UPLOAD_TOKEN_INVALID');
   }
-  const user = await User.findById(payload.sub).select('name role');
-  if (!user) throw AppError.notFound('Account not found.', 'USER_NOT_FOUND');
-  return user;
 }
 
-/** Public: what the phone page shows — whose session + which docs are already uploaded. */
+/** Public: the phone page + the website read the session's TEMPORARY uploads. */
 export async function sessionInfo(token: string) {
-  const user = await resolveUser(token);
-  const docs = await documentService.listDocuments(
-    { id: user.id, role: user.role, name: user.name },
-    { page: 1, limit: 100 },
-  );
-  return { valid: true as const, userName: user.name, documents: docs.items };
+  const { sub, sid } = resolve(token);
+  const user = await User.findById(sub).select('name');
+  const docs = await TempUpload.find({ sessionId: sid }).sort({ createdAt: 1 });
+  return {
+    valid: true as const,
+    userName: user?.name ?? 'Upload',
+    documents: docs.map((d) => ({
+      id: d._id.toString(),
+      fileName: d.fileName,
+      category: d.category,
+      data: d.data,
+      createdAt: d.createdAt,
+    })),
+  };
 }
 
-/** Public (token-authenticated): upload a document that is mapped to the session's user. */
+/** Public (token-authenticated): store a document TEMPORARILY for printing. */
 export async function uploadViaToken(token: string, input: { fileName: string; data: string; category?: string }) {
-  const user = await resolveUser(token);
-  return documentService.createDocument(input, { id: user.id, role: user.role, name: user.name });
+  const { sid } = resolve(token);
+  if (!/^data:(image\/(png|jpe?g|webp)|application\/pdf);base64,/.test(input.data)) {
+    throw AppError.badRequest('Unsupported file. Upload a JPG, PNG, WEBP or PDF.', 'INVALID_FILE');
+  }
+  const doc = await TempUpload.create({ sessionId: sid, fileName: input.fileName, data: input.data, category: input.category });
+  return { id: doc._id.toString(), fileName: doc.fileName, category: doc.category };
+}
+
+/** Clears all temporary uploads for the session (e.g. after printing). */
+export async function clearSession(token: string): Promise<{ removed: number }> {
+  const { sid } = resolve(token);
+  const res = await TempUpload.deleteMany({ sessionId: sid });
+  return { removed: res.deletedCount ?? 0 };
 }
