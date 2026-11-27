@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { env } from '../config/env';
 import { UserRole } from '../models/User';
@@ -34,13 +35,14 @@ export function verifyRefreshToken(token: string): RefreshTokenPayload {
 }
 
 export interface UploadTokenPayload {
-  sub: string; // userId whose documents these uploads belong to
+  sub: string; // userId who started the session
+  sid: string; // unique session id (keys the temporary uploads)
   typ: 'upload';
 }
 
 export function signUploadToken(userId: string): string {
-  return jwt.sign({ sub: userId, typ: 'upload' } as UploadTokenPayload, env.jwt.accessSecret, {
-    expiresIn: '30m',
+  return jwt.sign({ sub: userId, sid: randomUUID(), typ: 'upload' } as UploadTokenPayload, env.jwt.accessSecret, {
+    expiresIn: '2h',
   });
 }
 
