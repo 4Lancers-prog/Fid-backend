@@ -11,5 +11,6 @@ router.post('/', authenticate, controller.create);
 // Public (token in URL): the phone page reads session info and uploads.
 router.get('/:token', controller.info);
 router.post('/:token/documents', validate(createDocumentSchema), controller.upload);
+router.delete('/:token/documents', controller.clear);
 
 export default router;
